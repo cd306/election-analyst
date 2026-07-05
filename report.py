@@ -5,11 +5,16 @@ from pathlib import Path
 import pandas as pd
 
 
-def _format_table(results: pd.DataFrame, title: str) -> str:
+def _format_table(
+    results: pd.DataFrame,
+    title: str,
+    choice_a_label: str = "Yes",
+    choice_b_label: str = "No",
+) -> str:
     lines = [title, "=" * len(title), ""]
     header = (
-        f"{'District':>10}  {'Yes Votes':>12}  {'No Votes':>11}  "
-        f"{'Total':>10}  {'Yes%':>6}  {'No%':>6}  {'Margin':>8}  {'Result':>6}"
+        f"{'District':>10}  {f'{choice_a_label} Votes':>12}  {f'{choice_b_label} Votes':>11}  "
+        f"{'Total':>10}  {f'{choice_a_label}%':>6}  {f'{choice_b_label}%':>6}  {'Margin':>8}  {'Result':>6}"
     )
     sep = "-" * len(header)
     lines += [header, sep]
@@ -38,8 +43,13 @@ def _format_table(results: pd.DataFrame, title: str) -> str:
     return "\n".join(lines)
 
 
-def print_district_table(results: pd.DataFrame, title: str = "Results by District") -> None:
-    print(_format_table(results, title))
+def print_district_table(
+    results: pd.DataFrame,
+    title: str = "Results by District",
+    choice_a_label: str = "Yes",
+    choice_b_label: str = "No",
+) -> None:
+    print(_format_table(results, title, choice_a_label, choice_b_label))
 
 
 def save_csv(results: pd.DataFrame, path: Path) -> None:
@@ -48,7 +58,13 @@ def save_csv(results: pd.DataFrame, path: Path) -> None:
     print(f"  Saved: {path}")
 
 
-def save_text_table(results: pd.DataFrame, path: Path, title: str = "Results by District") -> None:
+def save_text_table(
+    results: pd.DataFrame,
+    path: Path,
+    title: str = "Results by District",
+    choice_a_label: str = "Yes",
+    choice_b_label: str = "No",
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(_format_table(results, title))
+    path.write_text(_format_table(results, title, choice_a_label, choice_b_label))
     print(f"  Saved: {path}")

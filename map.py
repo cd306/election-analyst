@@ -17,7 +17,7 @@ def make_choropleth(
     output_path: Optional[Path] = None,
     cmap_colors: tuple = ("#d73027", "#ffffff", "#1a9850"),
     legend_label: str = "Yes %",
-) -> None:
+) -> plt.Figure:
     """Merge results onto districts and draw a choropleth.
 
     Districts are annotated with district number and value_col percentage."""
@@ -76,11 +76,4 @@ def make_choropleth(
     )
 
     plt.tight_layout()
-
-    if output_path:
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        fig.savefig(output_path, dpi=150, bbox_inches="tight")
-        print(f"  Saved: {output_path}")
-        plt.close(fig)
-    else:
-        plt.show()
+    return fig
