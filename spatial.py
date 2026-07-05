@@ -58,6 +58,22 @@ def load_council_districts(
     return filtered[["district_num", "geometry"]]
 
 
+def load_supervisor_districts(path: Path) -> gpd.GeoDataFrame:
+    """Load SD County Supervisor District GeoJSON.
+    Returns GeoDataFrame with [district_num, geometry]."""
+    gdf = gpd.read_file(path)
+    if "distno" not in gdf.columns:
+        raise KeyError(
+            f"Expected 'distno' column in supervisor districts file. Found: {list(gdf.columns)}"
+        )
+    gdf = gdf[["distno", "geometry"]].copy()
+    gdf["district_num"] = gdf["distno"].astype(int)
+    if gdf.crs is None or gdf.crs.to_epsg() != 4326:
+        gdf = gdf.to_crs(_WGS84)
+    print(f"INFO: Loaded {len(gdf)} supervisor districts")
+    return gdf[["district_num", "geometry"]]
+
+
 def assign_precincts_to_districts(
     precincts: gpd.GeoDataFrame, districts: gpd.GeoDataFrame
 ) -> pd.DataFrame:

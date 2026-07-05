@@ -80,6 +80,30 @@ def download_svprec_map(
     return dest
 
 
+def download_sov_data(
+    election: str = "G24", county: str = "073", force: bool = False
+) -> Path:
+    """Download SWDB main SOV data CSV (statewide props, federal/state races)."""
+    url = (
+        f"https://statewidedatabase.org/pub/data/{election}/c{county}/"
+        f"sov_data_by_{election.lower()}_svprec.csv"
+    )
+    dest = DATA_DIR / "sov_data_svprec.csv"
+    download_file(url, dest, force=force)
+    return dest
+
+
+def download_supervisor_districts(force: bool = False) -> Path:
+    """Download SD County Supervisor District boundaries from SANDAG FeatureServer."""
+    url = (
+        "https://geo.sandag.org/server/rest/services/Hosted/Supervisor_Districts/"
+        "FeatureServer/0/query?where=1%3D1&outFields=*&f=geojson"
+    )
+    dest = DATA_DIR / "supervisor_districts.geojson"
+    download_file(url, dest, force=force)
+    return dest
+
+
 def download_council_districts(force: bool = False) -> Path:
     """Download San Diego County council district boundaries GeoJSON from SanGIS."""
     url = "https://geo.sandag.org/server/rest/directories/downloads/Council_Districts.geojson"

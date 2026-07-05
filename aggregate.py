@@ -122,6 +122,25 @@ def merge_votes_with_districts(
     return merged
 
 
+def load_swdb_prop_votes(path: Path, yes_col: str, no_col: str) -> pd.DataFrame:
+    """Extract votes for a proposition from the SWDB wide-format SOV data CSV.
+
+    Returns DataFrame with columns [SVPREC, yes_votes, no_votes]."""
+    df = pd.read_csv(path, dtype=str, usecols=["svprec", yes_col, no_col])
+    df = df.rename(columns={"svprec": "SVPREC"})
+    df["SVPREC"] = df["SVPREC"].astype(str).str.strip()
+
+    def to_int(col: pd.Series) -> pd.Series:
+        cleaned = col.astype(str).str.strip().replace({"***": None, "nan": None, "": None})
+        return pd.to_numeric(cleaned, errors="coerce").astype("Int64")
+
+    df["yes_votes"] = to_int(df[yes_col])
+    df["no_votes"] = to_int(df[no_col])
+    result = df[["SVPREC", "yes_votes", "no_votes"]].dropna(subset=["SVPREC"])
+    result = result[result["SVPREC"] != "nan"]
+    return result.reset_index(drop=True)
+
+
 def aggregate_by_district(merged: pd.DataFrame) -> pd.DataFrame:
     """Group by district_num, sum votes, compute percentages."""
     with_district = merged.dropna(subset=["district_num"]).copy()

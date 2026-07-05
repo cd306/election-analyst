@@ -15,11 +15,12 @@ def make_choropleth(
     value_col: str = "yes_pct",
     title: str = "Results by Council District",
     output_path: Optional[Path] = None,
+    cmap_colors: tuple = ("#d73027", "#ffffff", "#1a9850"),
+    legend_label: str = "Yes %",
 ) -> None:
     """Merge results onto districts and draw a choropleth.
 
-    Colormap: RdYlGn centered at 50% for pass/fail clarity.
-    Districts are annotated with number and yes%."""
+    Districts are annotated with district number and value_col percentage."""
     merged = districts.merge(
         results[["district_num", "yes_pct", "no_pct", "margin_pct", "passed"]],
         on="district_num",
@@ -30,7 +31,7 @@ def make_choropleth(
 
     # Diverging colormap centered at 50 (vmin=0, vcenter=50, vmax=100)
     norm = mcolors.TwoSlopeNorm(vmin=0, vcenter=50, vmax=100)
-    cmap = plt.cm.RdYlGn
+    cmap = mcolors.LinearSegmentedColormap.from_list("custom", list(cmap_colors))
 
     merged.plot(
         column=value_col,
@@ -46,7 +47,7 @@ def make_choropleth(
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
     cbar = fig.colorbar(sm, ax=ax, fraction=0.03, pad=0.04)
-    cbar.set_label("Yes %", fontsize=11)
+    cbar.set_label(legend_label, fontsize=11)
 
     # Annotate each district
     for _, row in merged.iterrows():
