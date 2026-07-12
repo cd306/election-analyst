@@ -6,10 +6,14 @@ from pathlib import Path
 import pandas as pd
 
 
+def _xls_engine(path: Path) -> str:
+    return "openpyxl" if str(path).endswith(".xlsx") else "xlrd"
+
+
 def find_measure_sheet(xls_path: Path, measure_label: str) -> str:
-    """Find which sheet in the SOV XLS contains the given measure.
+    """Find which sheet in the SOV XLS/XLSX contains the given measure.
     Returns the sheet name."""
-    xl = pd.ExcelFile(xls_path, engine="xlrd")
+    xl = pd.ExcelFile(xls_path, engine=_xls_engine(xls_path))
     norm_label = measure_label.upper()
     for sheet in xl.sheet_names:
         try:
@@ -36,7 +40,7 @@ def parse_measure_sheet(xls_path: Path, sheet_name: str) -> pd.DataFrame:
 
     Returns DataFrame with columns [SVPREC, yes_votes, no_votes].
     Only "Total" rows are kept (combines vote-center and mail ballots)."""
-    xl = pd.ExcelFile(xls_path, engine="xlrd")
+    xl = pd.ExcelFile(xls_path, engine=_xls_engine(xls_path))
     df = pd.read_excel(xl, sheet_name, header=None)
 
     # Rows 6+ are data; filter to "Total" rows only

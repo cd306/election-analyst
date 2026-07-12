@@ -51,7 +51,7 @@ def run_analysis(
 
     # --- vote extraction ---
     if contest.source == "registrar_xls":
-        xls_path = download.download_registrar_sov(force=force)
+        xls_path = download.download_registrar_sov(contest.election_ym, force=force)
         sheet = aggregate.find_measure_sheet(xls_path, contest.search_label)
         print(f"  Found in sheet: {sheet}")
         votes_sv = aggregate.parse_measure_sheet(xls_path, sheet)

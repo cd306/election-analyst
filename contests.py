@@ -20,7 +20,8 @@ class ContestConfig:
     choice_b_label: str = "No"
     cmap_colors: tuple = ("#d73027", "#ffffff", "#1a9850")  # red-white-green
     legend_label: str = "Yes %"
-    election: str = "G24"
+    election_ym: str = "202411"  # YYYYMM for Registrar SOV zip lookup
+    election: str = "G24"        # SWDB election label for precinct boundaries + SVPREC map
     county: str = "073"          # FIPS county code (073 = San Diego)
 
 
@@ -50,6 +51,16 @@ CONTESTS = [
         source="swdb_data",
         yes_col="PR_36_Y",
         no_col="PR_36_N",
+    ),
+    # June 2026 Primary — uses G24 precinct geometry (SWDB P26 not yet published)
+    ContestConfig(
+        name="measure-a-2026",
+        label="SD Measure A (Empty Homes Tax) — Jun 2026",
+        source="registrar_xls",
+        search_label="CITY OF SAN DIEGO MEASURE A",
+        election_ym="202606",
+        election="G24",   # best available SWDB precinct data until P26 is published
+        county="073",
     ),
 ]
 

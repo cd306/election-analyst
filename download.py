@@ -26,24 +26,56 @@ def download_file(url: str, dest: Path, force: bool = False) -> Path:
     return dest
 
 
-def download_registrar_sov(force: bool = False) -> Path:
-    """Download the SD County Registrar Official Final Statement of Votes Cast (2024 Nov).
-    Extracts the XLS from the zip and returns its path."""
-    xls_dest = DATA_DIR / "Official Final Statement of Votes Case 202411.xls"
-    if xls_dest.exists() and not force:
-        return xls_dest
+_SOV_REGISTRY = {
+    "202411": {
+        "zip_url": "https://www.sdvote.com/content/dam/rov/en/archive/Official Final Statement of Votes Cast 202411.zip",
+        "zip_dest": "sov_202411.zip",
+        "ext": ".xls",
+    },
+    "202606": {
+        "zip_url": "https://www.sdvote.com/content/dam/rov/en/archive/Statement of Votes Cast 202606.zip",
+        "zip_dest": "sov_202606.zip",
+        "ext": ".xlsx",
+    },
+}
 
-    zip_url = "https://www.sdvote.com/content/dam/rov/en/archive/Official Final Statement of Votes Cast 202411.zip"
-    zip_dest = DATA_DIR / "sov_202411.zip"
-    download_file(zip_url, zip_dest, force=force)
+
+def download_registrar_sov(election_ym: str = "202411", force: bool = False) -> Path:
+    """Download the SD County Registrar Statement of Votes Cast for a given election.
+
+    election_ym: YYYYMM string, e.g. '202411' (Nov 2024) or '202606' (Jun 2026).
+    Returns path to the extracted spreadsheet."""
+    if election_ym not in _SOV_REGISTRY:
+        raise ValueError(
+            f"Unknown SOV election '{election_ym}'. "
+            f"Available: {list(_SOV_REGISTRY)}. Add an entry to _SOV_REGISTRY in download.py."
+        )
+    entry = _SOV_REGISTRY[election_ym]
+    ext = entry["ext"]
+
+    # Check if already extracted
+    for candidate in DATA_DIR.glob(f"*{election_ym}*{ext}"):
+        if not force:
+            return candidate
+    # Also check nested extraction paths
+    for candidate in DATA_DIR.rglob(f"*{ext}"):
+        if election_ym in str(candidate) and not force:
+            return candidate
+
+    zip_dest = DATA_DIR / entry["zip_dest"]
+    download_file(entry["zip_url"], zip_dest, force=force)
 
     with zipfile.ZipFile(zip_dest) as z:
         names = z.namelist()
-        xls_name = next((n for n in names if n.endswith(".xls")), None)
-        if not xls_name:
-            raise FileNotFoundError(f"No .xls file found in zip. Contents: {names}")
-        z.extract(xls_name, DATA_DIR)
-    return DATA_DIR / xls_name
+        spreadsheet = next((n for n in names if n.endswith(ext)), None)
+        if not spreadsheet:
+            raise FileNotFoundError(f"No {ext} file found in zip. Contents: {names}")
+        z.extractall(DATA_DIR)
+        # Handle nested directories in zip
+        extracted = DATA_DIR / spreadsheet
+        if not extracted.exists():
+            raise FileNotFoundError(f"Expected extracted file at {extracted}")
+    return extracted
 
 
 def download_precinct_boundaries(
